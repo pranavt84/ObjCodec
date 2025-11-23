@@ -3,36 +3,39 @@
 Encode your object and you will get a hash string.
 Decode your hash string and you will get a json object.
 
-## 📋 Requirements Met
+## Requirements Met
 
-- Support String, Int32, DataInput (nested arrays) example -   ["foo", ["bar", 42]]
+- Support String(including UTF-8 symbols), Int32, DataInput (nested arrays) example -   ["foo", ["bar", 42]]
 - No built-in encoding/decoding libraries
 - Accessible through API
 
 ## Protocol Specification
-**Wire Format:**
+**Protocol Format:**
 - Array: `[0x03][count: 2 bytes][elements...]`
 - String: `[0x02][length: 4 bytes][UTF-8 bytes]`
 - Int32: `[0x01][value: 4 bytes]`
 
 **Constraints:**
-- Max array size: 1000 elements ✓
-- Max string length: 1,000,000 characters ✓
+- Max array size: 1000 elements
+- Max string length: 1,000,000 characters
 
 **Performance:**
 - Encode: 50-600 μs typical
 - Decode: 40-150 μs typical
 
 
-## Below-mentioned commands are exactly verfied on Windows and MAC/Linux
+## Below-mentioned commands are exactly verified on Windows and MAC
 ## Quick Start with Docker (Easiest)
 ```bash
 # Pull and run
+
+# On Mac/linux-
+docker pull --platform=linux/amd64 hanumatey1/clickhouse-encoder:latest
+docker run --platform=linux/amd64 -d -p 8080:8080 --name clickhouse-encoder hanumatey1/clickhouse-encoder:latest
+
+# On Windows
 docker pull hanumatey1/clickhouse-encoder:latest
 docker run -d -p 8080:8080 --name clickhouse-encoder hanumatey1/clickhouse-encoder:latest
-
-On Mac-
-docker run --platform=linux/amd64 -d -p 8080:8080 --name clickhouse-encoder hanumatey1/clickhouse-encoder:latest
 ```
 
 ## Building from Source - Java 17 or later must be installed
@@ -47,10 +50,10 @@ java -jar target/clickhouse-encoder.jar 8080
 ## Functional API Endpoints
 ### Health Check
 ```bash
-On Mac/Linux
+# On Mac/Linux
 curl http://localhost:8080/health
 
-On Windows
+# On Windows
 curl http://localhost:8080/health `
   -Headers @{ "Content-Type" = "application/json" } `
   -Method Get
@@ -58,19 +61,19 @@ curl http://localhost:8080/health `
 
 ### Encode
 ```bash
-On Mac/Linux
+# On Mac/Linux
 curl -s -X POST http://localhost:8080/encode \
   -H "Content-Type: application/json" \
   -d '["foo", ["bar", 42]]' | jq .
   
-On Windows
+# On Windows
 curl http://localhost:8080/encode `
   -Headers @{ "Content-Type" = "application/json" } `
   -Body '["foo", ["bar", 42]]' `
   -Method Post  
 ```
 
-Response:
+Expected Response:
 ```json
 {
   "encoded": "0300020200000003666f6f0300020200000003626172010000002a",
@@ -83,19 +86,19 @@ Response:
 
 ### Decode
 ```bash
-On Mac/Linux
+# On Mac/Linux
 curl -s -X POST http://localhost:8080/decode \
   -H "Content-Type: application/json" \
   -d '{"encoded": "0300020200000003666f6f0300020200000003626172010000002a"}' | jq .
   
-On Windows
+# On Windows
 curl http://localhost:8080/decode `
   -Headers @{ "Content-Type" = "application/json" } `
   -Body '{"encoded":"0300020200000003666f6f0300020200000003626172010000002a"}' `
   -Method Post  
 ```
 
-Response:
+Expected Response:
 ```json
 {
   "decoded": ["foo", ["bar", 42]],
@@ -129,6 +132,14 @@ To add new types:
 2. Define wire format
 3. Write encode/decode implementation
 4. Add new switch statements in encoder and decoder.
+
+
+## Validating through test cases
+To add a new test case
+1. Go to test/DataInputServiceTest class
+2. Read the pattern of other test cases
+3. Add your test case
+4. Execute ```mvn -Dtest=DataInputServiceTest#YOUR_TEST_METHOD_NAME test```
 
 ## Author
 
